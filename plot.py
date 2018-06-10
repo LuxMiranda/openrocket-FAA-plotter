@@ -10,16 +10,26 @@ xAxis = 0
 xName = 'Time (seconds)'
 maxX = 25
 
-yData = []
-xData = []
-
 def main():
-    readFile()
-    plot()
+    thrustAndPropMassVsTime()
 
 
+def thrustAndPropMassVsTime():
+    title       = 'Thrust and Propellent Mass vs. Time'
+    xName       = 'Time (seconds)'
+    yNames      = ['Thrust (Newtons)', 'Propellant mass (grams)']
+    csvFileName = 'sustainer.csv'
+    yAxes       = [ 28, 20 ]
+    xAxis       = 0
+    maxX        = 25
+    xData,yData = readFile(csvFileName, xAxis, yAxes)
+    plot(title,xName,yNames,maxX,xData,yData)
 
-def readFile():
+
+def readFile(csvFileName, xAxis, yAxes):
+    yData = []
+    xData = []
+
     for x in yAxes:
         yData.append([])
 
@@ -35,6 +45,7 @@ def readFile():
                     yData[y].append(float(col))
 
     csvFile.close()
+    return xData, yData
 
 
 def make_patch_spines_invisible(ax):
@@ -43,7 +54,8 @@ def make_patch_spines_invisible(ax):
     for sp in ax.spines.values():
         sp.set_visible(False)
 
-def plot():
+
+def plot(title,xName,yNames,maxX,xData,yData):
     third = False
     if  len(yData) == 3:
         third = True
