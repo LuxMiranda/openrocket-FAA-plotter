@@ -1,17 +1,50 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
 import numpy as np
+import math
 import csv
-
-title = 'Thrust and Propellent Mass vs. Time'
-csvFileName = 'sustainer.csv'
-yAxes = [ 28, 20 ]
-yNames = ['Thrust (Newtons)', 'Propellant mass (grams)']
-xAxis = 0
-xName = 'Time (seconds)'
-maxX = 25
 
 def main():
     thrustAndPropMassVsTime()
+    CnaCPandDragVsMach()
+    CpCGandMassVsMach()
+    CGandMassVsTimeAtBU()
+
+
+def CGandMassVsTimeAtBU():
+    title       = 'CG and Mass vs. Time at BU'
+    xName       = 'Time (seconds)'
+    yNames      = ['CG (centimeters)', 'Mass (grams)']
+    csvFileName = 'sustainer.csv'
+    yAxes       = [ 24, 19 ]
+    xAxis       = 0
+    xData,yData = readFile(csvFileName, xAxis, yAxes)
+    maxX        = 25
+    plot(title,xName,yNames,maxX,xData,yData)
+
+
+def CpCGandMassVsMach():
+    title       = 'CP, CG, and Mass vs. Mach'
+    xName       = 'Mach Number'
+    yNames      = ['CP (centimeters)', 'CG (centimeters)', 'Mass (grams)']
+    csvFileName = 'sustainer.csv'
+    yAxes       = [ 23, 24, 19 ]
+    xAxis       = 26
+    xData,yData = readFile(csvFileName, xAxis, yAxes)
+    maxX        = max(xData)
+    plot(title,xName,yNames,maxX,xData,yData)
+
+
+def CnaCPandDragVsMach():
+    title       = 'Cna, CP, and Drag vs. Mach'
+    xName       = 'Mach Number'
+    yNames      = ['Cna', 'CP (centimeters)', 'Drag force (Newtons)']
+    csvFileName = 'sustainer.csv'
+    yAxes       = [ 35, 23, 29 ]
+    xAxis       = 26
+    xData,yData = readFile(csvFileName, xAxis, yAxes)
+    maxX        = max(xData)
+    plot(title,xName,yNames,maxX,xData,yData)
 
 
 def thrustAndPropMassVsTime():
@@ -21,8 +54,15 @@ def thrustAndPropMassVsTime():
     csvFileName = 'sustainer.csv'
     yAxes       = [ 28, 20 ]
     xAxis       = 0
-    maxX        = 25
     xData,yData = readFile(csvFileName, xAxis, yAxes)
+
+    # Determine when propellent mass reaches 0 to cut the plot off
+    maxX = 0
+    for i in range(0, len(yData[1])):
+        if yData[1][i] < 1:
+            maxX = math.ceil(xData[i]) + 1
+            break
+
     plot(title,xName,yNames,maxX,xData,yData)
 
 
@@ -80,11 +120,11 @@ def plot(title,xName,yNames,maxX,xData,yData):
         # Second, show the right spine.
         par2.spines["right"].set_visible(True)
 
-    p1, = host.plot(xData, yData[0], "b-", label=yNames[0])
-    p2, = par1.plot(xData, yData[1], "r-", label=yNames[1])
+    p1, = host.plot(xData, yData[0], "b-", label=yNames[0], lw=0.5)
+    p2, = par1.plot(xData, yData[1], "r-", label=yNames[1], lw=0.5)
     p3 = []
     if third:
-        p3, = par2.plot(xData, yData[2], "g-", label=yNames[2])
+        p3, = par2.plot(xData, yData[2], "g-", label=yNames[2], lw=0.5)
 
     host.set_xlabel(xName)
     host.set_ylabel(yNames[0])
@@ -111,10 +151,18 @@ def plot(title,xName,yNames,maxX,xData,yData):
         lines.append(p3)
 
     host.legend(lines, [l.get_label() for l in lines])
-    plt.xticks(np.arange(0, maxX+1, 1.0))
+
+    minor_locator = AutoMinorLocator(5)
+    host.xaxis.set_minor_locator(minor_locator)
+    plt.grid(which='minor')
     host.grid(True)
+    host.grid(b=True,which='minor')
+
     plt.title(title)
-    plt.show()
+    if not third:
+        plt.subplots_adjust(right=0.85)
+    plt.savefig('plots/' + (title.replace(' ','').replace('.','')) + '.pdf')
+    #plt.show()
 
 
 if __name__ == '__main__':
